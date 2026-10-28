@@ -1,21 +1,29 @@
-# Notes from building this
+# Notes
 
-## Why the key matters
+A few things I wanted to keep track of while working on this API.
 
-Each logical transfer should get one idempotency key. If the response gets lost, the client can retry with the same key. The server checks the request details before returning the original receipt. If the key has already been used for a different transfer, it's a conflict.
+## Retrying a payment
 
-The retry check runs before looking at balances because the account could have changed since the first successful request.
+A client should use the same idempotency key when it retries the same transfer. The API first checks whether that key already belongs to a completed transfer.
 
-I only save **successful** transfers against keys in this version. A rejected request can be fixed and sent again using that key. More complete APIs might persist selected failed responses too; that's a contract choice.
+If the key and transfer details match, it returns the first receipt. If someone uses the same key for a different transfer, the API returns a conflict.
 
-## One lock isn't a distributed transaction
+I check the key before checking the current balance. Otherwise a retry could fail just because another transfer changed the account balance after the original request succeeded.
 
-`synchronized` makes the balance check and update atomic within one JVM. That's easy to reason about, and the tests show the behavior when many requests arrive at once. Across two running instances, these maps and locks are separate. It isn't safe to use with real accounts.
+At the moment I only save successful transfers against a key. Failed requests can be corrected and sent again.
 
-Moving this to PostgreSQL means a single database transaction for debit, credit and idempotency record, with a unique constraint on the key and appropriate locks or version checks.
+## Concurrent requests
 
-## What I'd need before production
+I used `synchronized` around the balance update and key lookup. It's straightforward and helps make the tests meaningful without setting up a database.
 
-Authentication, account ownership checks, authorization, immutable audit records, structured logging without sensitive values, rate limits, transfer limits per account, reconciliation, persistence, monitoring, failure recovery and a much stricter money movement model (double-entry journals).
+The downside is that it only works inside one Java process. If I run two copies of the API, each copy has its own accounts and its own lock. They won't agree about which transfers have already happened.
 
-The demo has none of those guarantees and shouldn't be exposed publicly as a live transfer service.
+The next version should use PostgreSQL with a transaction for the debit, credit and idempotency record. The key will also need a unique constraint in the database.
+
+## Things I haven't built yet
+
+This isn't a full ledger. There's no separate debit and credit journal or reconciliation process. There's also no authentication or way to check whether a user owns an account.
+
+Before considering anything like a real deployment, I'd need persistent storage, account permissions, audit history, monitoring and proper failure recovery.
+
+For now I want to keep it small and get the transaction handling right first.

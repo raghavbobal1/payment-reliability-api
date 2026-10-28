@@ -1,57 +1,68 @@
-# Payment reliability API
+# Payment Reliability API
 
-A small Spring Boot project around one annoying payments problem: the client times out, retries the request, and you don't want to take the money twice.
+I wanted to build something around a problem that comes up in payment systems. What happens when a transfer goes through but the app times out before the customer sees a confirmation?
 
-It's a simulated transfer API, not connected to a real bank. I kept it small enough that the happy path, failure cases, and concurrency logic are easy to inspect.
+The customer might hit Send again. If the server treats that as a new payment, money could be sent twice.
 
-## What it does
+This is a small Java 21 and Spring Boot API that handles that situation. It uses fake accounts and fake money.
 
-- Starts with three fake accounts, each with a balance.
-- Sends transfers between accounts using Java 21 and Spring Boot.
-- Uses an `Idempotency-Key` header. Retrying the same request returns the original transfer instead of debiting the account again.
-- Returns `409` when someone reuses a key with different transfer details.
-- Rejects invalid amounts, missing accounts, self-transfers and insufficient funds.
-- Locks the in-memory ledger during writes to avoid overdraws within one running instance.
-- Has tests for duplicate requests, different payloads, concurrent retries and competing transfers.
+## How it works
 
-## Running locally
+Every transfer request includes an `Idempotency-Key`. If the same request is sent again with the same key, the API returns the original transfer instead of moving the money again.
 
-Java 21 and Maven 3.9+ required.
+You can also try sending the same key with a different amount. That returns a `409 Conflict` because it is not the same request.
+
+There are three test accounts with starting balances. The API checks the amount, makes sure the accounts exist and rejects transfers that would leave an account with a negative balance.
+
+I used `BigDecimal` for amounts so money isn't handled using floating point values. The balance update is synchronized to handle concurrent requests in this demo.
+
+## Try it locally
+
+You need Java 21 and Maven 3.9 or newer.
+
+Run the API:
 
 ```bash
 mvn spring-boot:run
 ```
 
+Check the sample accounts:
+
 ```bash
 curl http://localhost:8080/api/accounts
+```
 
+Send $25:
+
+```bash
 curl -i -X POST http://localhost:8080/api/transfers \
   -H 'Content-Type: application/json' \
   -H 'Idempotency-Key: invoice-1042' \
   -d '{"fromAccount":"ACC-1001","toAccount":"ACC-1002","amount":25.00}'
 ```
 
-Run that POST twice with **the same key**. The first returns `201`; the retry returns `200` with `replayed: true`, and the money only moves once. Change the amount while keeping the same key and you'll get a `409` conflict.
+Run the same request a second time. The first response is `201 Created`. The retry returns `200 OK` with `replayed: true`. Only $25 is transferred.
 
-To run the tests:
+If you change the amount but keep `invoice-1042` as the key, you'll get a `409 Conflict`.
+
+You can also try the examples in [requests.http](requests.http).
+
+## Tests
 
 ```bash
 mvn test
 ```
 
-There's also a `requests.http` file for the IntelliJ HTTP client. The health endpoint is `/actuator/health`.
+There are eight JUnit tests covering regular transfers, retries, invalid amounts, missing accounts and requests happening at the same time. The project also runs tests in GitHub Actions.
 
-## What I deliberately didn't do
+## What is still missing
 
-The accounts, transfers and idempotency keys live in memory, and everything resets on restart. The synchronized method is fine for **one JVM**, not multiple app instances. There's no user authorization, persistent ledger, reconciliation or external payment processor.
+Right now everything is stored in memory. Restarting the app resets the accounts. The synchronized method only protects one running instance.
 
-A real system would need a database transaction with uniqueness constraints, row locking, audit events and proper auth. This is a learning/interview project, **not a production payment service**.
+I'd like to move the balances and transfers to PostgreSQL next. That would let me work on real database transactions and make the retry logic safer when multiple instances are running.
 
-I wrote down the tradeoffs in [docs/NOTES.md](docs/NOTES.md).
+It also needs authentication, account permissions and audit records before it could be used for anything beyond a local demo.
 
-## Next things to build
+I wrote down some of those decisions in [my notes](docs/NOTES.md).
 
-- PostgreSQL persistence with transaction boundaries and idempotency uniqueness.
-- Spring Security and account-level authorization.
-- HTTP integration tests and a simple failure/retry walkthrough.
-- A basic React client if the API is solid first.
+This project doesn't connect to any bank or handle real money.
