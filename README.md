@@ -53,7 +53,7 @@ You can also try the examples in [requests.http](requests.http).
 mvn test
 ```
 
-There are eight JUnit tests covering regular transfers, retries, invalid amounts, missing accounts and requests happening at the same time. The project also runs tests in GitHub Actions.
+There are 15 JUnit tests: eight ledger unit tests and seven HTTP integration tests. The integration tests start the Spring Boot server on a random port and send real HTTP requests. They verify successful transfers, replayed requests, conflicting keys, unknown accounts, insufficient funds, invalid input and missing transfers. They also check balances after each outcome. See [HTTP test notes](docs/HTTP_TESTS.md). The project runs all tests in GitHub Actions.
 
 ## What is still missing
 
