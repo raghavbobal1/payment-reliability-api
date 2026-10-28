@@ -1,0 +1,23 @@
+### Initial fake balances
+GET http://localhost:8080/api/accounts
+
+### Create a transfer
+POST http://localhost:8080/api/transfers
+Content-Type: application/json
+Idempotency-Key: invoice-1042
+
+{"fromAccount":"ACC-1001","toAccount":"ACC-1002","amount":25.00}
+
+### Repeat same request (no second debit)
+POST http://localhost:8080/api/transfers
+Content-Type: application/json
+Idempotency-Key: invoice-1042
+
+{"fromAccount":"ACC-1001","toAccount":"ACC-1002","amount":25.00}
+
+### Same key with changed amount (409)
+POST http://localhost:8080/api/transfers
+Content-Type: application/json
+Idempotency-Key: invoice-1042
+
+{"fromAccount":"ACC-1001","toAccount":"ACC-1002","amount":27.00}
