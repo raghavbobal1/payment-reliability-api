@@ -158,6 +158,17 @@ class TransferHttpIntegrationTest {
     }
 
     @Test
+    void recentTransfersListExcludesReplayedDuplicates() throws Exception {
+        String payload = transfer("ACC-1001", "ACC-1002", "12.50");
+        assertEquals(201, post("history-key-0001", payload).statusCode());
+        assertEquals(200, post("history-key-0001", payload).statusCode());
+        HttpResponse<String> history = get("/api/transfers");
+        assertEquals(200, history.statusCode());
+        assertEquals(1, json(history).size());
+        assertEquals("ACC-1001", json(history).get(0).path("fromAccount").asText());
+    }
+
+    @Test
     void missingTransferReturns404() throws Exception {
         HttpResponse<String> response = get("/api/transfers/not-a-transfer");
         assertEquals(404, response.statusCode());
