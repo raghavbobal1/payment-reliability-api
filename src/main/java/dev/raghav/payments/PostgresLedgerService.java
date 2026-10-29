@@ -30,6 +30,13 @@ public class PostgresLedgerService extends LedgerService {
     }
 
     @Override
+    public List<TransferReceipt> recentTransfers() {
+        return jdbc.query("SELECT id, from_account, to_account, amount, created_at " +
+                "FROM transfers ORDER BY created_at DESC, id DESC LIMIT 20",
+                (rs, n) -> receipt(rs, false));
+    }
+
+    @Override
     public TransferReceipt findTransfer(String id) {
         try {
             UUID.fromString(id);
