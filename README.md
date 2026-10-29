@@ -64,16 +64,22 @@ You can also try the examples in [requests.http](requests.http).
 mvn test
 ```
 
-There are 15 JUnit tests: eight ledger unit tests and seven HTTP integration tests. The integration tests start the Spring Boot server on a random port and send real HTTP requests. They verify successful transfers, replayed requests, conflicting keys, unknown accounts, insufficient funds, invalid input and missing transfers. They also check balances after each outcome. See [HTTP test notes](docs/HTTP_TESTS.md). The project runs all tests in GitHub Actions.
+The test suite includes eight ledger unit tests, eight HTTP integration tests and five PostgreSQL integration tests. The HTTP tests start a real Spring Boot server and send real requests. The PostgreSQL tests use a real database to check persistence and concurrent retries. GitHub Actions runs the full suite and captures browser screenshots of the running demo. See [HTTP test notes](docs/HTTP_TESTS.md).
 
 ## Current scope and limitations
 
-The interactive dashboard is served by Spring Boot at the root URL. It shows synthetic account balances, sends transfers, retries the same request and demonstrates conflicts. The recent transfers panel is a browser-session view, not a server-side transaction history endpoint.
+The interactive dashboard is served by Spring Boot at the root URL. It shows synthetic account balances, sends transfers, retries the same request and demonstrates conflicts. Recent transfers come from the `GET /api/transfers` endpoint and persist across restarts in the PostgreSQL profile.
 
 The PostgreSQL profile uses JDBC, Flyway and a transaction-scoped advisory lock. The default profile remains in-memory so the original unit and HTTP tests work without Docker. GitHub Actions starts a real PostgreSQL service for the database integration tests.
 
 The advisory lock serializes all demo transfers. This is deliberately simple and correct for a small teaching project, but would be a throughput bottleneck for a production payment system. Authentication, account permissions, audit trails, rate limiting, monitoring and secure deployment are not implemented. This is not a real payment processor.
 
-GitHub Pages can host static files but cannot run this Java backend or its PostgreSQL database. The interactive console requires a running API; no public hosted backend is claimed.
+GitHub Pages can host static files but cannot run this Java backend or its PostgreSQL database. The interactive console requires a running API. A Render deployment Blueprint is included, but public hosting must be verified independently before sharing a live URL.
 
 See [PostgreSQL setup](docs/POSTGRES_SETUP.md) and [HTTP test notes](docs/HTTP_TESTS.md).
+
+## Screenshots and architecture
+
+GitHub Actions opens the running Spring Boot demo in Chromium and uploads screenshots of the dashboard, a successful transfer, an idempotent retry and a conflicting retry. Open the latest successful workflow run and download the `payment-reliability-dashboard-screenshots` artifact. The screenshot script is [scripts/capture-screenshots.cjs](scripts/capture-screenshots.cjs).
+
+See the [architecture diagram](docs/architecture.svg) and [three optional LinkedIn drafts](docs/LINKEDIN_DRAFTS.md). Nothing is published to LinkedIn automatically.
