@@ -11,6 +11,25 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: payments
+          POSTGRES_USER: payments
+          POSTGRES_PASSWORD: local-demo-only
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U payments -d payments"
+          --health-interval 5s
+          --health-timeout 3s
+          --health-retries 10
+    env:
+      POSTGRES_TESTS: "true"
+      DATABASE_URL: jdbc:postgresql://localhost:5432/payments
+      DATABASE_USER: payments
+      DATABASE_PASSWORD: local-demo-only
     steps:
       - uses: actions/checkout@v4
       - name: Java 21
