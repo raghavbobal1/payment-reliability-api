@@ -1,0 +1,32 @@
+databases:
+  - name: payment-reliability-db
+    plan: free
+    region: ohio
+    databaseName: payments
+    user: payments
+services:
+  - type: web
+    name: payment-reliability-demo
+    runtime: docker
+    plan: free
+    region: ohio
+    healthCheckPath: /actuator/health
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: postgres
+      - key: DATABASE_HOST
+        fromDatabase:
+          name: payment-reliability-db
+          property: host
+      - key: DATABASE_NAME
+        fromDatabase:
+          name: payment-reliability-db
+          property: database
+      - key: DATABASE_USER
+        fromDatabase:
+          name: payment-reliability-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: payment-reliability-db
+          property: password
