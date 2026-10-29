@@ -1,29 +1,23 @@
-# Notes
+# Implementation notes
 
-A few things I wanted to keep track of while working on this API.
+The goal is to demonstrate a common payment problem: a client can time out after a successful transfer and retry without knowing whether the first request worked.
 
-## Retrying a payment
+## Idempotency
 
-A client should use the same idempotency key when it retries the same transfer. The API first checks whether that key already belongs to a completed transfer.
+The client supplies a stable `Idempotency-Key` for the same transfer attempt. The server checks that key first. If it has already succeeded, the API returns the original receipt. A different amount or destination with the same key returns HTTP 409.
 
-If the key and transfer details match, it returns the first receipt. If someone uses the same key for a different transfer, the API returns a conflict.
+Only successful transfers are stored against a key. A failed validation or insufficient-funds attempt can be corrected and retried.
 
-I check the key before checking the current balance. Otherwise a retry could fail just because another transfer changed the account balance after the original request succeeded.
+## Concurrency
 
-At the moment I only save successful transfers against a key. Failed requests can be corrected and sent again.
+The default ledger uses a synchronized in-memory implementation for local experiments. It is not shared across Java processes.
 
-## Concurrent requests
+The PostgreSQL profile uses a single database transaction and a transaction-scoped advisory lock. Debit, credit, receipt and idempotency record either commit together or roll back together. The database enforces nonnegative balances and unique keys.
 
-I used `synchronized` around the balance update and key lookup. It's straightforward and helps make the tests meaningful without setting up a database.
+This approach serializes every transfer and is intentionally limited to a small demo. A real payment service would need more granular locking, permissions, reconciliation, audit logging, monitoring and operational recovery.
 
-The downside is that it only works inside one Java process. If I run two copies of the API, each copy has its own accounts and its own lock. They won't agree about which transfers have already happened.
+## Demo console
 
-The next version should use PostgreSQL with a transaction for the debit, credit and idempotency record. The key will also need a unique constraint in the database.
+The Spring Boot app serves an interactive browser console. It loads synthetic balances from the API, creates transfers, retries the same key, tests a conflict and fetches recent transfers from the database or in-memory ledger.
 
-## Things I haven't built yet
-
-This isn't a full ledger. There's no separate debit and credit journal or reconciliation process. There's also no authentication or way to check whether a user owns an account.
-
-Before considering anything like a real deployment, I'd need persistent storage, account permissions, audit history, monitoring and proper failure recovery.
-
-For now I want to keep it small and get the transaction handling right first.
+The repository's GitHub Actions workflow also opens the running app in Chromium and saves screenshots of four real states as an artifact. Screenshots are not mocked and are not evidence of public hosting.
