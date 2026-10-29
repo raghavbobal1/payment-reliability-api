@@ -40,3 +40,31 @@ jobs:
           cache: maven
       - name: Run tests and package
         run: mvn -B verify
+
+      - name: Start running demo for screenshots
+        run: |
+          nohup java -jar target/payment-reliability-api-0.1.0.jar > /tmp/payment-demo.log 2>&1 &
+          for i in $(seq 1 60); do
+            if curl -fsS http://127.0.0.1:8080/actuator/health > /dev/null; then
+              exit 0
+            fi
+            sleep 2
+          done
+          cat /tmp/payment-demo.log
+          exit 1
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Install browser for real screenshots
+        run: |
+          npm install --no-save --package-lock=false playwright@1.56.1
+          npx playwright install --with-deps chromium
+      - name: Capture transfer and retry screens
+        run: node scripts/capture-screenshots.cjs
+      - name: Upload real demo screenshots
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: payment-reliability-dashboard-screenshots
+          path: screenshots/*.png
+          if-no-files-found: warn
