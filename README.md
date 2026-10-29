@@ -14,17 +14,28 @@ You can also try sending the same key with a different amount. That returns a `4
 
 There are three test accounts with starting balances. The API checks the amount, makes sure the accounts exist and rejects transfers that would leave an account with a negative balance.
 
-I used `BigDecimal` for amounts so money isn't handled using floating point values. The balance update is synchronized to handle concurrent requests in this demo.
+I used `BigDecimal` for amounts so money isn't handled using floating point values. The default in-memory profile uses synchronization for one JVM. The PostgreSQL profile uses one database transaction and a transaction-scoped advisory lock to serialize transfers across instances.
 
 ## Try it locally
 
 You need Java 21 and Maven 3.9 or newer.
 
-Run the API:
+Run the API in the default in-memory mode:
 
 ```bash
 mvn spring-boot:run
 ```
+
+Open the interactive dashboard at **http://localhost:8080/**.
+
+To use persistent PostgreSQL storage instead:
+
+```bash
+docker compose up -d postgres
+mvn spring-boot:run -Dspring-boot.run.profiles=postgres
+```
+
+The PostgreSQL profile applies Flyway migrations and seeds three synthetic accounts. Restarting the API does not reset the database. Stop and remove the database volume only if you want to discard demo transfers.
 
 Check the sample accounts:
 
@@ -55,14 +66,14 @@ mvn test
 
 There are 15 JUnit tests: eight ledger unit tests and seven HTTP integration tests. The integration tests start the Spring Boot server on a random port and send real HTTP requests. They verify successful transfers, replayed requests, conflicting keys, unknown accounts, insufficient funds, invalid input and missing transfers. They also check balances after each outcome. See [HTTP test notes](docs/HTTP_TESTS.md). The project runs all tests in GitHub Actions.
 
-## What is still missing
+## Current scope and limitations
 
-Right now everything is stored in memory. Restarting the app resets the accounts. The synchronized method only protects one running instance.
+The interactive dashboard is served by Spring Boot at the root URL. It shows synthetic account balances, sends transfers, retries the same request and demonstrates conflicts. The recent transfers panel is a browser-session view, not a server-side transaction history endpoint.
 
-I'd like to move the balances and transfers to PostgreSQL next. That would let me work on real database transactions and make the retry logic safer when multiple instances are running.
+The PostgreSQL profile uses JDBC, Flyway and a transaction-scoped advisory lock. The default profile remains in-memory so the original unit and HTTP tests work without Docker. GitHub Actions starts a real PostgreSQL service for the database integration tests.
 
-It also needs authentication, account permissions and audit records before it could be used for anything beyond a local demo.
+The advisory lock serializes all demo transfers. This is deliberately simple and correct for a small teaching project, but would be a throughput bottleneck for a production payment system. Authentication, account permissions, audit trails, rate limiting, monitoring and secure deployment are not implemented. This is not a real payment processor.
 
-I wrote down some of those decisions in [my notes](docs/NOTES.md).
+GitHub Pages can host static files but cannot run this Java backend or its PostgreSQL database. The interactive console requires a running API; no public hosted backend is claimed.
 
-This project doesn't connect to any bank or handle real money.
+See [PostgreSQL setup](docs/POSTGRES_SETUP.md) and [HTTP test notes](docs/HTTP_TESTS.md).
