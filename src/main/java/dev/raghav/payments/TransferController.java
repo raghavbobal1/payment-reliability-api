@@ -25,6 +25,11 @@ public class TransferController {
         return ledger.accounts();
     }
 
+    @GetMapping("/transfers")
+    public List<TransferReceipt> recentTransfers() {
+        return ledger.recentTransfers();
+    }
+
     @PostMapping("/transfers")
     public ResponseEntity<TransferReceipt> create(
             @RequestHeader(value = "Idempotency-Key", required = false) String key,
