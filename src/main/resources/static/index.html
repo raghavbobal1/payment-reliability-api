@@ -11,7 +11,7 @@
 <form id="form"><label for="from">From account</label><select id="from" required></select><label for="to">To account</label><select id="to" required></select><div class="row"><div><label for="amount">Amount (CAD)</label><input id="amount" type="number" min=".01" max="1000000" step=".01" value="25.00" required></div><div><label for="key">Idempotency key</label><input id="key" required minlength="8" maxlength="128"></div></div><button class="full" id="send">Send transfer</button></form>
 <div class="actions"><button class="secondary" id="newkey">Generate new key</button><button class="secondary" id="retry">Retry same payment</button><button class="secondary" id="conflict">Test conflicting retry</button></div><p id="status" class="muted" role="status" aria-live="polite"></p></div>
 <div class="panel"><h2>API response</h2><div class="muted">Real HTTP response from the running Spring Boot service.</div><pre id="output">Ready to send a transfer.</pre><h2 style="margin-top:24px">Recent transfers</h2><div id="history" class="muted">Loading recent transfers from the API…</div><div class="actions"><button class="secondary" id="refresh">Refresh balances</button></div></div></section>
-<div class="footer">Java 21 · Spring Boot · PostgreSQL profile · Idempotent transfers · Demo only</div></main>
+<div class="footer">Java 21 · Spring Boot · Optional PostgreSQL storage · Idempotent transfers · Demo only</div></main>
 <script>
 const $=id=>document.getElementById(id);let last=null;let accounts=[];
 const money=n=>new Intl.NumberFormat('en-CA',{style:'currency',currency:'CAD'}).format(n);
