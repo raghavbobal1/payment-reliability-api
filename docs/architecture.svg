@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="680" viewBox="0 0 1200 680" role="img" aria-labelledby="title desc">
+<title id="title">Payment Reliability API architecture</title>
+<desc id="desc">Browser dashboard sends HTTP requests to Spring Boot. The service checks idempotency keys and uses a JDBC transaction and PostgreSQL advisory lock to update accounts, transfers and idempotency records atomically.</desc>
+<defs>
+  <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#111a31"/><stop offset="1" stop-color="#0c1222"/></linearGradient>
+  <linearGradient id="card" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#263657"/><stop offset="1" stop-color="#1a2744"/></linearGradient>
+  <marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8Z" fill="#79b9ff"/></marker>
+</defs>
+<rect width="1200" height="680" fill="url(#bg)"/>
+<g fill="#e9f2ff" font-family="Arial, sans-serif">
+  <text x="60" y="72" font-size="34" font-weight="700">Payment Reliability API</text>
+  <text x="60" y="103" font-size="15" fill="#a5b7d4">Synthetic payment demo | Java 21 | Spring Boot | PostgreSQL</text>
+</g>
+<g font-family="Arial, sans-serif">
+  <rect x="60" y="170" width="250" height="190" rx="18" fill="url(#card)" stroke="#4a6a9d"/>
+  <text x="84" y="213" fill="#80c5ff" font-size="13" font-weight="700">01  CLIENT</text>
+  <text x="84" y="248" fill="#fff" font-size="23" font-weight="700">Browser console</text>
+  <text x="84" y="280" fill="#c7d6ec" font-size="15">Accounts and balances</text>
+  <text x="84" y="305" fill="#c7d6ec" font-size="15">Transfer and retry actions</text>
+  <text x="84" y="330" fill="#c7d6ec" font-size="15">Real API responses</text>
+  <rect x="410" y="170" width="340" height="190" rx="18" fill="url(#card)" stroke="#4a6a9d"/>
+  <text x="436" y="213" fill="#80c5ff" font-size="13" font-weight="700">02  API</text>
+  <text x="436" y="248" fill="#fff" font-size="23" font-weight="700">Spring Boot</text>
+  <text x="436" y="280" fill="#c7d6ec" font-size="15">POST /api/transfers</text>
+  <text x="436" y="305" fill="#c7d6ec" font-size="15">GET /api/accounts</text>
+  <text x="436" y="330" fill="#c7d6ec" font-size="15">GET /api/transfers</text>
+  <rect x="850" y="170" width="290" height="190" rx="18" fill="url(#card)" stroke="#4a6a9d"/>
+  <text x="875" y="213" fill="#80c5ff" font-size="13" font-weight="700">03  DATA</text>
+  <text x="875" y="248" fill="#fff" font-size="23" font-weight="700">PostgreSQL</text>
+  <text x="875" y="280" fill="#c7d6ec" font-size="15">accounts</text>
+  <text x="875" y="305" fill="#c7d6ec" font-size="15">transfers</text>
+  <text x="875" y="330" fill="#c7d6ec" font-size="15">idempotency_requests</text>
+  <path d="M310 265H405" stroke="#79b9ff" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <text x="333" y="249" fill="#a9d4ff" font-size="13">HTTP</text>
+  <path d="M750 265H844" stroke="#79b9ff" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <text x="769" y="249" fill="#a9d4ff" font-size="13">JDBC</text>
+  <rect x="410" y="416" width="730" height="154" rx="18" fill="#122f36" stroke="#387d79"/>
+  <text x="436" y="455" fill="#8de3cd" font-size="14" font-weight="700">ONE ATOMIC TRANSACTION</text>
+  <text x="436" y="490" fill="#f3ffff" font-size="19" font-weight="700">Check key → lock → check funds → debit + credit → save receipt</text>
+  <text x="436" y="523" fill="#c3e4dd" font-size="15">Same key + same request returns the original receipt. Different payload returns 409.</text>
+  <text x="436" y="546" fill="#c3e4dd" font-size="15">PostgreSQL advisory lock serializes this demo's transfers across instances.</text>
+  <path d="M580 360V410" stroke="#8de3cd" stroke-width="3" fill="none" marker-end="url(#arrow)"/>
+  <rect x="60" y="416" width="250" height="154" rx="18" fill="#27253e" stroke="#6c5e9f"/>
+  <text x="84" y="455" fill="#c6b4ff" font-size="14" font-weight="700">VERIFICATION</text>
+  <text x="84" y="488" fill="#fff" font-size="19" font-weight="700">JUnit + GitHub Actions</text>
+  <text x="84" y="516" fill="#c8c1e6" font-size="14">Real PostgreSQL tests</text>
+  <text x="84" y="539" fill="#c8c1e6" font-size="14">Chromium UI screenshots</text>
+  <text x="60" y="631" fill="#9baec9" font-size="14">Local default: in-memory ledger. PostgreSQL profile: Flyway migrations and durable synthetic records.</text>
+</g></svg>
