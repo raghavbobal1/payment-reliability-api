@@ -50,6 +50,13 @@ class PostgresLedgerIntegrationTest {
         assertEquals(1L, jdbc.queryForObject("SELECT count(*) FROM transfers", Long.class));
     }
 
+    @Test void historyIsDatabaseBackedAndContainsNoRetryDuplicates() {
+        ledger.transfer("history-persist-0001", move("15.00"));
+        ledger.transfer("history-persist-0001", move("15.00"));
+        assertEquals(1, ledger.recentTransfers().size());
+        assertEquals(1L, jdbc.queryForObject("SELECT count(*) FROM transfers", Long.class));
+    }
+
     @Test void conflictingRetryDoesNotDebitAgain() {
         ledger.transfer("persist-key-0002", move("20.00"));
         LedgerException e = assertThrows(LedgerException.class,
