@@ -27,6 +27,12 @@ public class LedgerService {
         return List.copyOf(result);
     }
 
+    public synchronized List<TransferReceipt> recentTransfers() {
+        List<TransferReceipt> history = new ArrayList<>(transfers.values());
+        java.util.Collections.reverse(history);
+        return List.copyOf(history.subList(0, Math.min(history.size(), 20)));
+    }
+
     public synchronized TransferReceipt findTransfer(String id) {
         TransferReceipt transfer = transfers.get(id);
         if (transfer == null) {
