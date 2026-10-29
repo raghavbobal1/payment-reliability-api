@@ -12,6 +12,7 @@ import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.condition.EnabledIfEnvironmentVariable;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -20,6 +21,7 @@ import org.springframework.test.context.ActiveProfiles;
 /** Runs against real PostgreSQL, not H2 or the in-memory ledger. */
 @SpringBootTest
 @ActiveProfiles("postgres")
+@EnabledIfEnvironmentVariable(named = "POSTGRES_TESTS", matches = "true")
 class PostgresLedgerIntegrationTest {
     @Autowired LedgerService ledger;
     @Autowired JdbcTemplate jdbc;
