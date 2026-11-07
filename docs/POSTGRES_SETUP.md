@@ -27,7 +27,7 @@ GitHub Actions runs the PostgreSQL integration tests against a real PostgreSQL 1
 
 ## Cloud configuration
 
-The public Render Blueprint uses the `demo` profile with temporary in-memory accounts. It does not depend on an expiring free database. Its data resets when the web service restarts or sleeps.
+The Docker image uses the `demo` profile by default, overriding any old `SPRING_PROFILES_ACTIVE` environment variable. Set `PAYMENTS_DEPLOY_PROFILE=postgres` when running the Docker image with a persistent database. The public Render Blueprint uses the `demo` profile with temporary in-memory accounts. It does not depend on an expiring free database. Its data resets when the web service restarts or sleeps.
 
 For a persistent PostgreSQL deployment, select the `postgres` Spring profile and provide `DATABASE_HOST`, `DATABASE_NAME`, `DATABASE_USER` and `DATABASE_PASSWORD` using private environment variables. The app listens on `PORT` when provided. That storage is not needed for the public recruiter demo.
 
