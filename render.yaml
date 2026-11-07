@@ -1,9 +1,6 @@
-databases:
-  - name: payment-reliability-db
-    plan: free
-    region: ohio
-    databaseName: payments
-    user: payments
+# Public demo uses temporary in-memory data so it stays usable
+# after the free Render PostgreSQL database expires.
+# PostgreSQL remains available locally and in GitHub Actions.
 services:
   - type: web
     name: payment-reliability-demo
@@ -13,20 +10,4 @@ services:
     healthCheckPath: /actuator/health
     envVars:
       - key: SPRING_PROFILES_ACTIVE
-        value: postgres
-      - key: DATABASE_HOST
-        fromDatabase:
-          name: payment-reliability-db
-          property: host
-      - key: DATABASE_NAME
-        fromDatabase:
-          name: payment-reliability-db
-          property: database
-      - key: DATABASE_USER
-        fromDatabase:
-          name: payment-reliability-db
-          property: user
-      - key: DATABASE_PASSWORD
-        fromDatabase:
-          name: payment-reliability-db
-          property: password
+        value: demo

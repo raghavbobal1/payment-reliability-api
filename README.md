@@ -74,7 +74,7 @@ The PostgreSQL profile uses JDBC, Flyway and a transaction-scoped advisory lock.
 
 The advisory lock serializes all demo transfers. This is deliberately simple and correct for a small teaching project, but would be a throughput bottleneck for a production payment system. Authentication, account permissions, audit trails, rate limiting, monitoring and secure deployment are not implemented. This is not a real payment processor.
 
-GitHub Pages can host static files but cannot run this Java backend or its PostgreSQL database. The interactive console requires a running API. A Render deployment Blueprint is included, but public hosting must be verified independently before sharing a live URL.
+GitHub Pages can host static files but cannot run this Java backend or its PostgreSQL database. The interactive console requires a running API. The Render Blueprint uses the in-memory demo profile so a free PostgreSQL database expiration cannot take down the public example. The hosted demo is shared and resets balances and transfer history when the service restarts or wakes from sleep. The PostgreSQL profile, transaction code and integration tests stay in this repository. Public hosting must still be checked independently before sharing the URL.
 
 See [PostgreSQL setup](docs/POSTGRES_SETUP.md) and [HTTP test notes](docs/HTTP_TESTS.md).
 
